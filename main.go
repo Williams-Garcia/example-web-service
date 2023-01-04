@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -26,6 +27,7 @@ func pingpong(router *gin.Engine) {
 
 	router.GET("/ping", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "pong")
+		return
 	})
 }
 
@@ -36,12 +38,34 @@ func sayHi(router *gin.Engine) {
 		var p Person
 		if err := ctx.BindJSON(&p); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"Error": "Datos de entrada no validos"})
+			return
 		}
 
 		msg := fmt.Sprintf(hi, p.Name, p.LastName)
 		ctx.JSON(http.StatusOK, gin.H{"Data": msg})
+		return
 	})
 
+}
+
+func sayHiTwo(router *gin.Engine) {
+	router.POST("/hi2", func(ctx *gin.Context) {
+
+		data, err := ctx.GetRawData()
+		if err != nil {
+			panic(err)
+		}
+
+		var person1 Person
+
+		if err := json.Unmarshal(data, &person1); err != nil {
+			ctx.String(http.StatusBadRequest, "Error")
+			return
+		}
+		mensaje := fmt.Sprintf("Hola %s %s", person1.Name, person1.LastName)
+		ctx.String(http.StatusOK, mensaje)
+		return
+	})
 }
 
 // import (
